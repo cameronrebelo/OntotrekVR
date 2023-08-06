@@ -3,7 +3,7 @@
 development2.js interface for 3d-force-graph
 ******************************************************************************/
 // import {ForceGraphVR} from './3d-force-graph-vr.min.js';
-const graph = new ForceGraphVR();
+// const graph = new ForceGraphVR();
 var RENDER_QUICKER = false;
 var RENDER_DEPTH = 50;
 var RENDER_GALAXY = false;
@@ -450,7 +450,7 @@ function init(load=false, nodes=null, links=null) {
 function depth_iterate() {
   /*
   Handles one iteration at depth n at a time.
-  On each iteration, adds all nodes at that depth, and any connections to
+  On≠ each iteration, adds all nodes at that depth, and any connections to
   parents that they have.
   Only on top.EXIT_DEPTH iteration are labels rendered, thicker edges,
   and switch to given dimension.
@@ -458,7 +458,10 @@ function depth_iterate() {
   */
   if (top.ITERATE > top.EXIT_DEPTH) {
     if (top.GRAPH) {
-      top.GRAPH.pauseAnimation();
+      // const graphInstance = top.GRAPH();
+      // console.log(graphInstance);
+      // graphInstance.pauseAnimation();
+      // top.GRAPH.ForceGraphVR.pauseAnimation();
     }
     return
   }
