@@ -1,9 +1,9 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-// THREE =        require('../node_modules/three');
+THREE =        require('../node_modules/three');
 SpriteText =   require('../node_modules/three-spritetext');
 // ForceGraphVR = require('./3d-force-graph-vr.min.js')
 
-},{"../node_modules/three-spritetext":2}],2:[function(require,module,exports){
+},{"../node_modules/three":3,"../node_modules/three-spritetext":2}],2:[function(require,module,exports){
 const { LinearFilter, Sprite, SpriteMaterial, SRGBColorSpace, Texture } = require('three');
 
 function _iterableToArrayLimit(arr, i) {
@@ -6348,11 +6348,31 @@ module.exports = _default;
 
 	}
 
+	var id = 0;
+
+	function _classPrivateFieldLooseKey(name) {
+		return "__private_" + id++ + "_" + name;
+	}
+
+	function _classPrivateFieldLooseBase(receiver, privateKey) {
+		if (!Object.prototype.hasOwnProperty.call(receiver, privateKey)) {
+			throw new TypeError("attempted to use private field on non-instance");
+		}
+
+		return receiver;
+	}
+
 	let materialId = 0;
+
+	var _alphaTest = /*#__PURE__*/_classPrivateFieldLooseKey("alphaTest");
 
 	class Material extends EventDispatcher {
 		constructor() {
 			super();
+			Object.defineProperty(this, _alphaTest, {
+				writable: true,
+				value: 0
+			});
 			Object.defineProperty(this, 'id', {
 				value: materialId++
 			});
@@ -6400,19 +6420,18 @@ module.exports = _default;
 			this.toneMapped = true;
 			this.userData = {};
 			this.version = 0;
-			this._alphaTest = 0;
 		}
 
 		get alphaTest() {
-			return this._alphaTest;
+			return _classPrivateFieldLooseBase(this, _alphaTest)[_alphaTest];
 		}
 
 		set alphaTest(value) {
-			if (this._alphaTest > 0 !== value > 0) {
+			if (_classPrivateFieldLooseBase(this, _alphaTest)[_alphaTest] > 0 !== value > 0) {
 				this.version++;
 			}
 
-			this._alphaTest = value;
+			_classPrivateFieldLooseBase(this, _alphaTest)[_alphaTest] = value;
 		}
 
 		onBuild() {}
@@ -26114,9 +26133,21 @@ module.exports = _default;
 	 * }
 	 */
 
+	var _clearcoat = /*#__PURE__*/_classPrivateFieldLooseKey("clearcoat");
+
+	var _transmission = /*#__PURE__*/_classPrivateFieldLooseKey("transmission");
+
 	class MeshPhysicalMaterial extends MeshStandardMaterial {
 		constructor(parameters) {
 			super();
+			Object.defineProperty(this, _clearcoat, {
+				writable: true,
+				value: 0
+			});
+			Object.defineProperty(this, _transmission, {
+				writable: true,
+				value: 0
+			});
 			this.defines = {
 				'STANDARD': '',
 				'PHYSICAL': ''
@@ -26147,33 +26178,31 @@ module.exports = _default;
 			this.specularIntensityMap = null;
 			this.specularTint = new Color(1, 1, 1);
 			this.specularTintMap = null;
-			this._clearcoat = 0;
-			this._transmission = 0;
 			this.setValues(parameters);
 		}
 
 		get clearcoat() {
-			return this._clearcoat;
+			return _classPrivateFieldLooseBase(this, _clearcoat)[_clearcoat];
 		}
 
 		set clearcoat(value) {
-			if (this._clearcoat > 0 !== value > 0) {
+			if (_classPrivateFieldLooseBase(this, _clearcoat)[_clearcoat] > 0 !== value > 0) {
 				this.version++;
 			}
 
-			this._clearcoat = value;
+			_classPrivateFieldLooseBase(this, _clearcoat)[_clearcoat] = value;
 		}
 
 		get transmission() {
-			return this._transmission;
+			return _classPrivateFieldLooseBase(this, _transmission)[_transmission];
 		}
 
 		set transmission(value) {
-			if (this._transmission > 0 !== value > 0) {
+			if (_classPrivateFieldLooseBase(this, _transmission)[_transmission] > 0 !== value > 0) {
 				this.version++;
 			}
 
-			this._transmission = value;
+			_classPrivateFieldLooseBase(this, _transmission)[_transmission] = value;
 		}
 
 		copy(source) {

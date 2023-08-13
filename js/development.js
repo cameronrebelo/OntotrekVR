@@ -46,9 +46,9 @@ const RE_NAMESPACE_URL = /(?<prefix>https?:\/\/.+[\/#](?<namespace>\w+)(?<separa
 const GRAPH_DOM_EL = $("#3d-graph");
 const GRAPH_BACKGROUND_COLOR = "#302020";
 // HACK for background sized to text; using 2nd semitransparent grey sprite as it always faces camera.
-// SPRITE_MAP = new THREE.TextureLoader().load( "img/whitebox.png" );
-// SPRITE_MATERIAL = new THREE.SpriteMaterial( { map: SPRITE_MAP, color: 0x808080 , opacity : 0.5} );
-// SPRITE_FONT_COLOR = '#FAEBD7';
+SPRITE_MAP = new THREE.TextureLoader().load( "img/whitebox.png" );
+SPRITE_MATERIAL = new THREE.SpriteMaterial( { map: SPRITE_MAP, color: 0x808080 , opacity : 0.5} );
+SPRITE_FONT_COLOR = '#FAEBD7';
 
 const SYNONYM_FIELD = ["synonyms", 
   "oboInOwl:hasSynonym", 
@@ -178,7 +178,9 @@ function load_graph() {
     let nodes=top.BUILT_DATA.nodes;
     let links=top.BUILT_DATA.links;
     top.GRAPH = init(load=true, nodes, links);
-    
+    // console.dir("a-entity");
+    var aEntity = document.querySelector("a-entity");
+    // const t = document.querySelector("a-entity[camera], a-camera").setAttribute('position', {x: 100, y: 5, z: 0});
     top.dataLookup = Object.fromEntries(nodes.map(e => [e.id, e]))
 
     $(document.body).css({'cursor' : 'default'});
@@ -444,6 +446,9 @@ function init(load=false, nodes=null, links=null) {
     })
 
   }
+
+  var container = document.getElementById("a-entity");
+
 }
 
 

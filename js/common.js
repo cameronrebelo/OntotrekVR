@@ -88,8 +88,19 @@ a single root.
 
 init_search();
 init_interface();
-   
+let fix_z = -100;
 $(document).foundation()
+function fixCamera() {
+  fix_z = fix_z - 100;
+  console.log(document.querySelector('a-scene'));
+  // document.getElementById("forcegraph").setAttribute('position', '100 0.59 100')
+  const t = document.querySelector("a-entity[forcegraph]")
+  t.setAttribute('position', '0 0 '+fix_z);
+  t.setAttribute('rotation', '270 0 0');
+}
+
+
+
 
 // Try this in case URL had path, before chosen() is applied 
 var auto_load = document.location.href.indexOf('?ontology=')
@@ -376,6 +387,7 @@ function init_interface() {
       if (focus)
         setNodeReport()
     }
+    var AEntity = document.getElementById("a-entity");
   })
 }
 
@@ -971,7 +983,7 @@ function render_node(node) {
     // var geometry = new THREE.CircleGeometry(nodeRadius); // Doesn't provide 3d orientation
     // Set sphere to have fewer facets for rendering speed
     var geometry = new THREE.SphereGeometry(nodeRadius, 6, 4, 0); // (nodeRadius, 6, 4, 0, Math.PI) does 1/2 sphere
-    var material = new THREE.MeshLambertMaterial( { color: node.color } );
+    var material = new THREE.MeshBasicMaterial( { color: node.color } );
     var circle = new THREE.Mesh( geometry, material );
     circle.position.set( 0, 0, 0 );
     group.add( circle );
@@ -987,38 +999,40 @@ function render_node(node) {
 
     // The text layer
     // factor function: 0->2; 1->1.75, 2-> 1.5, 3-> 1.25, 4-> 1.
-    // var depth_factor = node.depth > 4 ? 2 : 10 - node.depth*2;
+    var depth_factor = node.depth > 4 ? 2 : 10 - node.depth*2;
     // // See https://github.com/vasturiano/three-spritetext for more options
-    // var sprite = new SpriteText(node.short_label);
-    // var z_offset = nodeRadius + depth_factor*2;
+    var sprite = new SpriteText(node.short_label);
+    var z_offset = nodeRadius + depth_factor*2;
 
-    // sprite.color = top.SPRITE_FONT_COLOR;
-    // sprite.textHeight = 8 * depth_factor;
+    sprite.color = top.SPRITE_FONT_COLOR;
+    sprite.textHeight = 8 * depth_factor;
     // // resolution of text, up to 90 (= slow)
-    // sprite.fontSize = 20; 
+    sprite.fontSize = 20; 
 
-    // sprite.position.set( 0, fancyLayout ? 5 : 0, z_offset); //vertical offset.
+    sprite.position.set(0, fancyLayout ? 5 : 0, z_offset); //vertical offset.
+    sprite.backgroundColor = 'gray';
+    sprite.padding = 5;
 
     // Semi-transparent background layer for fancyLayout
-    if (fancyLayout) {
-      // const sprite2 = new THREE.Sprite( SPRITE_MATERIAL );
-      // // z index proportional to node globe radius.; -5 to move it behind label
-      // sprite2.position.set( 0, 5, z_offset - 5 );
-      // var height = sprite._canvas.height * depth_factor/2;
-      // var width = sprite._canvas.width * depth_factor;
-      // sprite2.scale.set(width/2, height , 1);
-      // group.add( sprite2 );
-    }
-    else {
-      // sprite.backgroundColor = 'gray';
-      // sprite.padding = 5;
-    }
+    // if (fancyLayout) {
+    //   // const sprite2 = new THREE.Sprite( SPRITE_MATERIAL );
+    //   // // z index proportional to node globe radius.; -5 to move it behind label
+    //   // sprite2.position.set( 0, 5, z_offset - 5 );
+    //   // var height = sprite._canvas.height * depth_factor/2;
+    //   // var width = sprite._canvas.width * depth_factor;
+    //   // sprite2.scale.set(width/2, height , 1);
+    //   // group.add( sprite2 );
+    // }
+    // else {
+      
+    // }
 
     // group.add( sprite );
   }
     
   const obj = new THREE.Object3D();
   obj.add(group);
+  obj.position.set(new THREE.Vector3(100,100,100));
 
   return obj;
 
@@ -1149,11 +1163,11 @@ function setNodeReport(node = {}) {
       }
     }
 
-    top.GRAPH.cameraPosition(
-      {x: node.x, y: node.y - 500, z: node.z+50}, // new position  + CAMERA_DISTANCE/2 
-      node, // lookAt ({ x, y, z })  
-      4000  // 4 second transition duration
-    )
+    // top.GRAPH.cameraPosition(
+    //   {x: node.x, y: node.y - 500, z: node.z+50}, // new position  + CAMERA_DISTANCE/2 
+    //   node, // lookAt ({ x, y, z })  
+    //   4000  // 4 second transition duration
+    // )
 
   }
 }
