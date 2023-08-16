@@ -180,7 +180,7 @@ function load_graph() {
     top.GRAPH = init(load=true, nodes, links);
     // console.dir("a-entity");
     var aEntity = document.querySelector("a-entity");
-    // const t = document.querySelector("a-entity[camera], a-camera").setAttribute('position', {x: 100, y: 5, z: 0});
+    const t = document.querySelector("a-entity[camera], a-camera").setAttribute('position', {x: 100, y: 5, z: 0});
     top.dataLookup = Object.fromEntries(nodes.map(e => [e.id, e]))
 
     $(document.body).css({'cursor' : 'default'});

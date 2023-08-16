@@ -88,15 +88,21 @@ a single root.
 
 init_search();
 init_interface();
-let fix_z = -100;
-$(document).foundation()
+let fix_z = -100; 
+$(document).foundation();
+
 function fixCamera() {
   fix_z = fix_z - 100;
   console.log(document.querySelector('a-scene'));
   // document.getElementById("forcegraph").setAttribute('position', '100 0.59 100')
-  const t = document.querySelector("a-entity[forcegraph]")
+  const t = document.querySelector("a-entity[forcegraph]");
   t.setAttribute('position', '0 0 '+fix_z);
   t.setAttribute('rotation', '270 0 0');
+  const c = document.querySelector("a-entity[wasd-controls]");
+  c.setAttribute('acceleration', 300);
+  const r = document.querySelector("a-entity[raycaster]");
+  r.setAttribute('position', "0 -0.9 0");
+  r.setAttribute('rotation', "90 0 0");
 }
 
 
@@ -979,23 +985,26 @@ function render_node(node) {
   var fancyLayout = layout[node.id] || !RENDER_QUICKER
   var nodeRadius = get_node_radius(node, fancyLayout);
 
-  if (fancyLayout) {
+  // if (fancyLayout) {
     // var geometry = new THREE.CircleGeometry(nodeRadius); // Doesn't provide 3d orientation
     // Set sphere to have fewer facets for rendering speed
-    var geometry = new THREE.SphereGeometry(nodeRadius, 6, 4, 0); // (nodeRadius, 6, 4, 0, Math.PI) does 1/2 sphere
-    var material = new THREE.MeshBasicMaterial( { color: node.color } );
-    var circle = new THREE.Mesh( geometry, material );
-    circle.position.set( 0, 0, 0 );
-    group.add( circle );
-    node.marker = circle;
-  }
+    // var geometry = new THREE.SphereGeometry(nodeRadius, 6, 4, 0); // (nodeRadius, 6, 4, 0, Math.PI) does 1/2 sphere
+    // var material = new THREE.MeshBasicMaterial( { color: node.color } );
+    // var circle = new THREE.Mesh( geometry, material );
+    // circle.position.set( 0, 0, 0 );
+    // group.add( circle );
+    // node.marker = circle;
+  // }
 
 
   // HACK for background sized to text; using 2nd semitransparent grey sprite
   // as it always faces camera. However, latest 3d-force graph is causing
   // flicker for scale-reduced label and background sprite
   
-  if (RENDER_LABELS) {
+  // if (RENDER_LABELS) {
+
+  
+
 
     // The text layer
     // factor function: 0->2; 1->1.75, 2-> 1.5, 3-> 1.25, 4-> 1.
@@ -1004,14 +1013,18 @@ function render_node(node) {
     var sprite = new SpriteText(node.short_label);
     var z_offset = nodeRadius + depth_factor*2;
 
-    sprite.color = top.SPRITE_FONT_COLOR;
-    sprite.textHeight = 8 * depth_factor;
-    // // resolution of text, up to 90 (= slow)
-    sprite.fontSize = 20; 
+    // sprite.material.depthWrite = false; // make sprite background transparent
+    sprite.color = node.color;
+    sprite.textHeight = 8;
 
-    sprite.position.set(0, fancyLayout ? 5 : 0, z_offset); //vertical offset.
-    sprite.backgroundColor = 'gray';
-    sprite.padding = 5;
+    // sprite.color = top.SPRITE_FONT_COLOR;
+    // sprite.textHeight = 8 * depth_factor;
+    // // resolution of text, up to 90 (= slow)
+    // sprite.fontSize = 20; 
+
+    // sprite.position.set(0, fancyLayout ? 5 : 0, z_offset); //vertical offset.
+    // sprite.backgroundColor = 'gray';
+    // sprite.padding = 5;
 
     // Semi-transparent background layer for fancyLayout
     // if (fancyLayout) {
@@ -1028,11 +1041,30 @@ function render_node(node) {
     // }
 
     // group.add( sprite );
-  }
+  // }
     
+  // var label = new SpriteText({
+  //   textSize: 12, // Adjust the text size as needed
+  //   redrawInterval: 250,
+  //   texture: {
+  //     text: node.short_label,
+  //     fontFamily: 'Arial, sans-serif',
+  //     fontWeight: 'bold',
+  //   },
+  //   material: {
+  //     color: node.color,
+  //   },
+  // });
+  
+  // var z_offset = nodeRadius + depth_factor * 2;
+  // label.position.set(0, fancyLayout ? 5 : 0, z_offset); // Vertical offset
+  
+  // Add the label to the group
+  // group.add(label);
+  group.add(sprite);
   const obj = new THREE.Object3D();
   obj.add(group);
-  obj.position.set(new THREE.Vector3(100,100,100));
+  // obj.position.set(new THREE.Vector3(100,100,100));
 
   return obj;
 

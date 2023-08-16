@@ -16,8 +16,17 @@
     <link rel="stylesheet" href="css/foundation-icons.ttf">-->
     <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="js/chosen/chosen.css">
-    <!-- <script src="//unpkg.com/3d-force-graph-vr"></script> -->
-    <script src="js/3d-force-graph-vr.min.js"></script>
+    <script src="//unpkg.com/3d-force-graph-vr"></script>
+    <!-- <script src="js/3d-force-graph-vr.min.js"></script> -->
+  <script src="//unpkg.com/three-spritetext"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../build/three.module.js",
+        "three/addons/": "./jsm/"
+      }
+    }
+  </script>
   </head>
 
   <body>
@@ -367,7 +376,7 @@
     <!-- <script src="js/jquery-3.3.1.slim.min.js"></script> -->
     <!-- customized version of chosen.js that looks for synonyms too -->
     <script src="js/chosen/chosen.jquery.min.js"></script>
-    <script src="js/bundle.js"></script>
+    <!-- <script src="js/bundle.js"></script> -->
     <!-- Fetched from: script src="//unpkg.com/3d-force-graph"></script     -->
     <script src="js/lookup_tables.js"></script>
     <script src="js/common.js"></script>
@@ -375,6 +384,37 @@
     <script src="js/owl.js"></script>
     <script src="js/rdflib.min.js"></script>
     <script src="js/GLTFExporter.js"></script>
+    <script>
+      // Function to check if the graph has finished loading
+      function checkGraphLoaded() {
+        if (typeof top !== 'undefined' && typeof top.BUILT_DATA !== 'undefined') {
+          console.log(top.BUILT_DATA);
+          // Stop observing once the graph is loaded
+          observer.disconnect();
+        }
+      }
+
+      // Callback function for the observer
+      function mutationCallback(mutationsList, observer) {
+        for (let mutation of mutationsList) {
+          if (mutation.type === 'childList') {
+            // Check if the graph is loaded
+            checkGraphLoaded();
+          }
+        }
+      }
+      // Select the target element to observe
+      const targetNode = document.getElementById('3d-graph');
+
+      // Create a MutationObserver instance
+      const observer = new MutationObserver(mutationCallback);
+
+      // Start observing changes in the target element's child nodes
+      observer.observe(targetNode, { childList: true, subtree: true });
+
+      // Initial check in case the graph is already loaded
+      checkGraphLoaded();
+    </script>
 
   </body>
 </html>
