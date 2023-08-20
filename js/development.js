@@ -44,7 +44,7 @@ const RE_NAMESPACE_URL = /(?<prefix>https?:\/\/.+[\/#](?<namespace>\w+)(?<separa
 
 /***************** DOM and APPEARANCE *****************/
 const GRAPH_DOM_EL = $("#3d-graph");
-const GRAPH_BACKGROUND_COLOR = "#302020";
+const GRAPH_BACKGROUND_COLOR = "#102525";
 // HACK for background sized to text; using 2nd semitransparent grey sprite as it always faces camera.
 SPRITE_MAP = new THREE.TextureLoader().load( "img/whitebox.png" );
 SPRITE_MATERIAL = new THREE.SpriteMaterial( { map: SPRITE_MAP, color: 0x808080 , opacity : 0.5} );
@@ -179,8 +179,8 @@ function load_graph() {
     let links=top.BUILT_DATA.links;
     top.GRAPH = init(load=true, nodes, links);
     // console.dir("a-entity");
-    var aEntity = document.querySelector("a-entity");
-    const t = document.querySelector("a-entity[camera], a-camera").setAttribute('position', {x: 100, y: 5, z: 0});
+    // var aEntity = document.querySelector("a-entity");
+    // const t = document.querySelector("a-entity[camera], a-camera").setAttribute('position', {x: 100, y: 5, z: 0});
     top.dataLookup = Object.fromEntries(nodes.map(e => [e.id, e]))
 
     $(document.body).css({'cursor' : 'default'});
@@ -239,7 +239,7 @@ function do_graph() {
     top.MAX_DEPTH = top.BUILT_DATA.nodes[top.BUILT_DATA.nodes.length-1].depth;
     init_search(top.BUILT_DATA);
 
-    top.GRAPH = init(load=false);
+    // top.GRAPH = init(load=false);
 
     $("#download_button").css({'visibility': 'visible'})
     $("#rerender_button").css({'visibility': 'visible'})
@@ -284,10 +284,11 @@ function init(load=false, nodes=null, links=null) {
     // IS THERE A WAY TO FORCE CAMERA TO only pan, and rotate on x,y but not Z ?
     // .cameraPosition({x:0, y:-4000, z: 2000 }, {x:0, y:0, z: 0 })
     //.linkWidth(link => link === highlightLink ? 4 : 1)
-    .linkWidth(function(link) {
-      // 
-      return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
-    })
+    // .linkWidth(function(link) {
+    //   // 
+    //   return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
+    // })
+    .linkWidth(4)
 
     // Note d.target is an object!
     /*.linkAutoColorBy(d => d.target.color})*/
@@ -332,7 +333,7 @@ function init(load=false, nodes=null, links=null) {
     .linkOpacity(1)
 
     // Text shown on mouseover.  WAS node.label
-    .nodeLabel(node => `<div>${node['rdfs:label']}<br/><span class="tooltip-id">${node.id}</span></div>`) 
+    // .nodeLabel(node => `<div>${node['rdfs:label']}<br/><span class="tooltip-id">${node.id}</span></div>`) 
 
     //.nodeAutoColorBy('color')
     //.nodeColor(node => node.highlight ? 'color) // Note: this triggers refresh on each animation cycle
@@ -341,9 +342,9 @@ function init(load=false, nodes=null, links=null) {
     
     // Not doing anything...
     .nodeRelSize(node => node.highlight ? 18 : 4 ) // 4 is default
-    .onNodeHover(node => GRAPH_DOM_EL[0].style.cursor = node ? 'pointer' : null)
-    .onLinkClick(link => {setNodeReport(link.target)})
-    .onNodeClick(node => setNodeReport(node))
+    // .onNodeHover(node => GRAPH_DOM_EL[0].style.cursor = node ? 'pointer' : null)
+    // .onLinkClick(link => {setNodeReport(link.target)})
+    // .onNodeClick(node => setNodeReport(node))
     .nodeThreeObject(node => render_node(node))
 
     // Do this only for 3d iterated version
@@ -377,11 +378,11 @@ function init(load=false, nodes=null, links=null) {
     // IS THERE A WAY TO FORCE CAMERA TO only pan, and rotate on x,y but not Z ?
     // .cameraPosition({x:0, y:-4000, z: 2000 }, {x:0, y:0, z: 0 })
     //.linkWidth(link => link === highlightLink ? 4 : 1)
-    .linkWidth(function(link) {
-      // 
-      return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
-    })
-
+    // .linkWidth(function(link) {
+    //   // 
+    //   return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
+    // })
+    .linkHeight(4)
     // Note d.target is an object!
     /*.linkAutoColorBy(d => d.target.color})*/
     // It would be great if we could make it dashed instead
@@ -425,7 +426,7 @@ function init(load=false, nodes=null, links=null) {
     .linkOpacity(1)
 
     // Text shown on mouseover.  WAS node.label
-    .nodeLabel(node => `<div>${node['rdfs:label']}<br/><span class="tooltip-id">${node.id}</span></div>`) 
+    // .nodeLabel(node => `<div>${node['rdfs:label']}<br/><span class="tooltip-id">${node.id}</span></div>`) 
 
     //.nodeAutoColorBy('color')
     //.nodeColor(node => node.highlight ? 'color) // Note: this triggers refresh on each animation cycle
@@ -434,9 +435,9 @@ function init(load=false, nodes=null, links=null) {
     
     // Not doing anything...
     .nodeRelSize(node => node.highlight ? 18 : 4 ) // 4 is default
-    .onNodeHover(node => GRAPH_DOM_EL[0].style.cursor = node ? 'pointer' : null)
-    .onLinkClick(link => {setNodeReport(link.target)})
-    .onNodeClick(node => setNodeReport(node))
+    // .onNodeHover(node => GRAPH_DOM_EL[0].style.cursor = node ? 'pointer' : null)
+    // .onLinkClick(link => {setNodeReport(link.target)})
+    // .onNodeClick(node => setNodeReport(node))
     .nodeThreeObject(node => render_node(node))
 
     // Do this only for 3d iterated version
