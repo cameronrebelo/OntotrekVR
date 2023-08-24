@@ -20,6 +20,10 @@
   <script src="//unpkg.com/3d-force-graph-vr"></script>
   <!-- <script src="js/3d-force-graph-vr.min.js"></script> -->
   <script src="//unpkg.com/three-spritetext"></script>
+  <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+  <!-- <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v6.1.0/dist/aframe-extras.min.js"></script> -->
+  <script src="https://unpkg.com/aframe-haptics-component/dist/aframe-haptics-component.min.js"></script>
+  <script src="js/dialog-popup-component.js"></script> 
   <script type="importmap">
     {
       "imports": {
@@ -70,7 +74,7 @@
 
           <!-- **************************** SEARCH ************************ -->
           <div class="tabs-panel is-active" id="panel_search">
-            <div class="callout primary">
+            <div id = 'dd' class="callout primary">
 
               <div class="grid-x grid-padding-x" style="margin-bottom:10px;padding:5px;background-color:silver">
 
@@ -430,6 +434,7 @@
     <script src="js/owl.js"></script>
     <script src="js/rdflib.min.js"></script>
     <script src="js/GLTFExporter.js"></script>
+    <script src="js/components.js"></script>
     <!-- <script>
       // Function to check if the graph has finished loading
       function checkGraphLoaded() {

@@ -342,9 +342,9 @@ function init(load=false, nodes=null, links=null) {
     
     // Not doing anything...
     .nodeRelSize(node => node.highlight ? 18 : 4 ) // 4 is default
-    // .onNodeHover(node => GRAPH_DOM_EL[0].style.cursor = node ? 'pointer' : null)
+    .onNodeHover(node => nodeHoverVR(node))
     // .onLinkClick(link => {setNodeReport(link.target)})
-    // .onNodeClick(node => setNodeReport(node))
+    .onNodeClick(node => nodeClickVR(node))
     .nodeThreeObject(node => render_node(node))
 
     // Do this only for 3d iterated version

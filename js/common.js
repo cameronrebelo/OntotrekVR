@@ -86,6 +86,7 @@ a single root.
 
 ******************************************************************************/
 
+
 init_search();
 init_interface();
 let fix_z = -100; 
@@ -595,19 +596,157 @@ function load_data(URL, callback) {
   }
   xhttp.open("GET", URL, true);
   xhttp.send(null);
-  setInterval(function() {
+  setTimeout(function() {
   fix_z = fix_z - 100;
-  console.log(document.querySelector('a-scene'));
+  const scene = document.querySelector('a-scene');
   // document.getElementById("forcegraph").setAttribute('position', '100 0.59 100')
   const t = document.querySelector("a-entity[forcegraph]");
-  t.setAttribute('position', '0 0 -2000');
-  t.setAttribute('rotation', '270 0 0');
-  const c = document.querySelector("a-entity[wasd-controls]");
-  c.setAttribute('acceleration', 300);
-  const r = document.querySelector("a-entity[raycaster]");
-  r.setAttribute('position', "0 -0.9 0");
-  r.setAttribute('rotation', "90 0 0");
-  }, 5000);
+  const rig = document.querySelector("a-entity")
+  rig.setAttribute('id', 'cameraRig')
+  const camera = document.querySelector('[camera]')
+  camera.setAttribute('id', 'camera')
+
+  const dialogEntity = document.createElement('a-entity');
+  dialogEntity.setAttribute('dialog-popup','')
+  dialogEntity.setAttribute('position', '0 0 -5')
+  camera.appendChild(dialogEntity)
+  const lc = document.querySelector("a-entity[laser-controls]");
+  lc.removeAttribute('daydream-controls');
+  lc.removeAttribute('gearvr-controls');
+  lc.removeAttribute('hp-mixed-reality-controls') ;
+  lc.removeAttribute('magicleap-controls');
+  lc.removeAttribute('oculus-go-controls') ;
+  lc.removeAttribute('oculus-touch-controls');
+  lc.removeAttribute('valve-index-controls');
+  lc.removeAttribute('vive-controls');
+  lc.removeAttribute('vive-focus-controls');
+  lc.removeAttribute('windows-motion-controls');
+  lc.removeAttribute('generic-tracked-controller-controls');
+  lc.removeAttribute('laser-controls');
+
+  lc.setAttribute('laser-controls', {hand: 'right'});
+  lc.setAttribute('dropdown-controller', '');
+  lc.setAttribute('haptics','');
+  const nodeHUD = document.createElement("a-entity");
+  nodeHUD.setAttribute("geometry", {
+    primitive: 'plane',
+     height: 5,
+      width: 5,
+  });
+  nodeHUD.setAttribute("material", {
+    color: 'gray',
+    opacity: 0.5
+  });
+  nodeHUD.setAttribute("position", '0 0 -5');
+  // lc.appendChild(nodeHUD);
+  lc.setAttribute("dropdown-controller",'');
+  console.log(lc.getAttribute('laser-controls'));
+  /* helper for vasturiano/3d-force-graph-vr
+	*			draw a sphere around each force graph node, to make it easy to point to them with the ray caster,
+	* 			and attach a text label (which rotates to always face the camera)
+	* after the graph has been created, use something like
+	*			fgEl.setAttribute('spherize', {})
+	* to create the spheres
+	*/
+  const fg = t.getAttribute('forcegraph');
+const spheresEntity = document.createElement('a-entity');
+
+
+  AFRAME.registerComponent('spherize', {
+	schema: {},
+	dependencies: ['forcegraph'],
+	init: function () {
+		// spheres are cached here and re-used
+		this.spheres = new Map()
+
+	},
+	tick: function (time, timeDelta) {
+    // console.log("rig");
+    // console.log(document.querySelector('#cameraRig').getAttribute('position'))
+    // console.log("camera");
+    // console.log(document.querySelector('#camera').getAttribute('position'))
+
+    document
+    .querySelector('[forcegraph]')
+    .components.forcegraph.forceGraph.children.forEach((child) => {
+      
+      if (child.type == 'Mesh' && child.__data.id) {
+        let sphereEl = this.spheres.get(child.__data.id)
+        
+        if (sphereEl) {
+          // reuse existing sphere and label, but change its position
+          
+          sphereEl.object3D.position.copy(child.position)
+          const currentRotation = sphereEl.object3D.rotation;
+          // sphereEl.setAttribute('look-at', '#cameraRig')
+          // console.log(currentRotation);
+          // sphereEl.setAttribute('rotation', currentRotation.x+10+' '+ currentRotation.y+' '+currentRotation.z)
+        } else {
+          sphereEl = document.createElement('a-sphere')
+          sphereEl.classList.add('node')
+          sphereEl.id = child.__data.id
+          this.spheres.set(child.__data.id, sphereEl)
+          let radius = child.geometry.parameters.radius + 0.1
+          sphereEl.setAttribute('radius', radius)
+          sphereEl.setAttribute('position', child.position)
+        
+          let color = child.__data.color || 'white'
+          let compColor = 'white'
+          sphereEl.setAttribute('color', color)
+          this.el.appendChild(sphereEl)
+          let label = document.createElement('a-entity')
+          let originalText = child.__data.short_label;
+          let splitText = originalText.length > 9 ? originalText.substring(0, 8) + '\n' + originalText.substring(9) : originalText;
+          let totalWidth = originalText.length * (radius*400 / 160)
+          let totalHeight = 2 * (radius * 400 / 160);
+          let labelBackground = document.createElement('a-entity');
+          labelBackground.setAttribute('geometry', {
+            primitive: 'plane',
+            width: totalWidth,
+            height: totalHeight
+            // height: 2 * 20 * 5 *radius
+          });
+          labelBackground.setAttribute('material',{
+            color: 'gray',
+            opacity: 0.5
+          });
+          labelBackground.setAttribute('position' ,{x : 0, y : 0, z : -1});
+          
+          label.setAttribute('text', {
+            value: originalText,
+            color: compColor,
+            width: radius*400,
+            align: 'center',
+            wrapCount: 160
+          });
+          // label.setAttribute('scale', '4 4 4');
+          // label.appendChild(labelBackground);
+          sphereEl.setAttribute('look-at', '#camera')
+          label.setAttribute('position', {x: 0, y: 0, z: 5*radius})
+          sphereEl.appendChild(label)
+        }
+      }
+      // const s = (document.querySelector('a-sphere'));
+      // s.setAttribute('radius', "10");
+    })
+      
+	},
+})
+spheresEntity.setAttribute('spherize', '');
+scene.appendChild(spheresEntity);
+// const fg = t.getAttribute('forcegraph');
+
+t.setAttribute('position', '0 0 -2000');
+t.setAttribute('rotation', '270 0 0');
+const c = document.querySelector("a-entity[wasd-controls]");
+c.setAttribute('acceleration', 300);
+const r = document.querySelector("a-entity[raycaster]");
+r.setAttribute('position', "0 -0.9 0");
+r.setAttribute('rotation', "90 0 0");
+spheresEntity.setAttribute('position', '0 0 -2000');
+spheresEntity.setAttribute('rotation', '270 0 0');
+
+  }, 1000);
 };
 
 
@@ -998,7 +1137,7 @@ function render_node(node) {
   var fancyLayout = layout[node.id] || !RENDER_QUICKER
   var nodeRadius = get_node_radius(node, fancyLayout);
 
-  if (fancyLayout) {
+  // if (fancyLayout) {
     // var geometry = new THREE.CircleGeometry(nodeRadius/4); // Doesn't provide 3d orientation
     // Set sphere to have fewer facets for rendering speed
     var geometry = new THREE.SphereGeometry(nodeRadius/2, 32, 16, 0); // (nodeRadius, 6, 4, 0, Math.PI) does 1/2 sphere
@@ -1007,7 +1146,8 @@ function render_node(node) {
     circle.position.set( 0, 0, 0 );
     group.add( circle );
     node.marker = circle;
-  }
+    return circle;
+  // }
 
 
   // HACK for background sized to text; using 2nd semitransparent grey sprite
@@ -1038,14 +1178,14 @@ function render_node(node) {
       var height = sprite._canvas.height * depth_factor/4.5;
       var width = sprite._canvas.width * depth_factor/2.25;
       sprite2.scale.set(width/2, height , 1);
-      group.add( sprite2 );
+      // group.add( sprite2 );
     }
     else {
       sprite.backgroundColor = 'gray';
       sprite.padding = 5;
     }
     sprite.scale
-    group.add( sprite );
+    // group.add( sprite );
   }
  
   const obj = new THREE.Object3D();
@@ -1187,3 +1327,56 @@ function setNodeReport(node = {}) {
   }
 }
 
+function nodeClickVR(node = {}){
+  //need to deselect other clicked nodes
+
+  if (node.x) {
+    console.log("h")
+    const controller = document.querySelector("a-entity[laser-controls]")
+    controller.components.haptics.pulse(1,200);
+    const camera = document.querySelector("#camera");
+    const nodeHUD = document.createElement("a-entity");
+    nodeHUD.setAttribute("geometry", {
+      primitive: 'plane',
+       height: 5,
+        width: 2.5,
+    });
+    nodeHUD.setAttribute("material", {
+      color: 'gray',
+      opacity: 0.5
+    });
+    nodeHUD.setAttribute("text", {
+      value: "test"
+    });
+    nodeHUD.setAttribute("position", '-2.5 0 -5');
+    nodeHUD.setAttribute("look-at",'#camera');
+    camera.appendChild(nodeHUD);
+    // Color assigned here but rendered color isn't actually affected until 
+    // AFTER next rebuild of graph/viewport.
+    node.color = 'red'; 
+
+    // This sets visual color directly in rendering engine so we don't have to
+    // rerender graph as a whole!
+    if (node.marker && node.marker.material) {
+      node.marker.material.color.setHex(0xFF0000); 
+      if (node.depth > 2) {
+        node.marker.scale.x = 3
+        node.marker.scale.y = 3
+        //node.marker.scale.z = 3
+      }
+    }
+  }
+}
+
+function nodeHoverVR(node = {}){
+  if(node){
+    const dialog = document.querySelector('a-entity[dialog-popup]');
+    dialog.setAttribute('dialog-popup', {
+      title: 'test',
+      body: 'test',
+      dialogBoxWidth: 25,
+      dialogBoxHeight: 25,
+      openOn: 'triggerDown'
+    });
+  }
+}

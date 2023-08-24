@@ -1837,3 +1837,25 @@ function setNodeReport(node = {}) {
   }
 }
 
+function nodeClickVR(node = {}){
+  if (node) {
+    console.log("h")
+    // Color assigned here but rendered color isn't actually affected until 
+    // AFTER next rebuild of graph/viewport.
+    node.color = 'red'; 
+
+    // This sets visual color directly in rendering engine so we don't have to
+    // rerender graph as a whole!
+    if (node.marker && node.marker.material) {
+      node.marker.material.color.setHex(0xFF0000); 
+      if (node.depth > 2) {
+        node.marker.scale.x = 3
+        node.marker.scale.y = 3
+        //node.marker.scale.z = 3
+      }
+    }
+  }
+  else {
+    
+  }
+}
