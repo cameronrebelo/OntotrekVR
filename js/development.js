@@ -178,6 +178,7 @@ function load_graph() {
     let nodes=top.BUILT_DATA.nodes;
     let links=top.BUILT_DATA.links;
     top.GRAPH = init(load=true, nodes, links);
+    apply_changes();
     // console.dir("a-entity");
     // var aEntity = document.querySelector("a-entity");
     // const t = document.querySelector("a-entity[camera], a-camera").setAttribute('position', {x: 100, y: 5, z: 0});

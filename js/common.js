@@ -92,21 +92,6 @@ init_interface();
 let fix_z = -100; 
 $(document).foundation();
 
-function fixCamera() {
-  fix_z = fix_z - 100;
-  console.log(document.querySelector('a-scene'));
-  // document.getElementById("forcegraph").setAttribute('position', '100 0.59 100')
-  const t = document.querySelector("a-entity[forcegraph]");
-  t.setAttribute('position', '0 0 '+fix_z);
-  t.setAttribute('rotation', '270 0 0');
-  const c = document.querySelector("a-entity[wasd-controls]");
-  c.setAttribute('acceleration', 300);
-  const r = document.querySelector("a-entity[raycaster]");
-  r.setAttribute('position', "0 -0.9 0");
-  r.setAttribute('rotation', "90 0 0");
-}
-
-
 
 
 // Try this in case URL had path, before chosen() is applied 
@@ -596,159 +581,192 @@ function load_data(URL, callback) {
   }
   xhttp.open("GET", URL, true);
   xhttp.send(null);
-  setTimeout(function() {
-  fix_z = fix_z - 100;
-  const scene = document.querySelector('a-scene');
-  // document.getElementById("forcegraph").setAttribute('position', '100 0.59 100')
-  const t = document.querySelector("a-entity[forcegraph]");
-  const rig = document.querySelector("a-entity")
-  rig.setAttribute('id', 'cameraRig')
-  const camera = document.querySelector('[camera]')
-  camera.setAttribute('id', 'camera')
-
-  const dialogEntity = document.createElement('a-entity');
-  dialogEntity.setAttribute('dialog-popup','')
-  dialogEntity.setAttribute('position', '0 0 -5')
-  camera.appendChild(dialogEntity)
-  const lc = document.querySelector("a-entity[laser-controls]");
-  lc.removeAttribute('daydream-controls');
-  lc.removeAttribute('gearvr-controls');
-  lc.removeAttribute('hp-mixed-reality-controls') ;
-  lc.removeAttribute('magicleap-controls');
-  lc.removeAttribute('oculus-go-controls') ;
-  lc.removeAttribute('oculus-touch-controls');
-  lc.removeAttribute('valve-index-controls');
-  lc.removeAttribute('vive-controls');
-  lc.removeAttribute('vive-focus-controls');
-  lc.removeAttribute('windows-motion-controls');
-  lc.removeAttribute('generic-tracked-controller-controls');
-  lc.removeAttribute('laser-controls');
-
-  lc.setAttribute('laser-controls', {hand: 'right'});
-  lc.setAttribute('dropdown-controller', '');
-  lc.setAttribute('haptics','');
-  const nodeHUD = document.createElement("a-entity");
-  nodeHUD.setAttribute("geometry", {
-    primitive: 'plane',
-     height: 5,
-      width: 5,
-  });
-  nodeHUD.setAttribute("material", {
-    color: 'gray',
-    opacity: 0.5
-  });
-  nodeHUD.setAttribute("position", '0 0 -5');
-  // lc.appendChild(nodeHUD);
-  lc.setAttribute("dropdown-controller",'');
-  console.log(lc.getAttribute('laser-controls'));
-  /* helper for vasturiano/3d-force-graph-vr
-	*			draw a sphere around each force graph node, to make it easy to point to them with the ray caster,
-	* 			and attach a text label (which rotates to always face the camera)
-	* after the graph has been created, use something like
-	*			fgEl.setAttribute('spherize', {})
-	* to create the spheres
-	*/
-  const fg = t.getAttribute('forcegraph');
-const spheresEntity = document.createElement('a-entity');
-
-
-  AFRAME.registerComponent('spherize', {
-	schema: {},
-	dependencies: ['forcegraph'],
-	init: function () {
-		// spheres are cached here and re-used
-		this.spheres = new Map()
-
-	},
-	tick: function (time, timeDelta) {
-    // console.log("rig");
-    // console.log(document.querySelector('#cameraRig').getAttribute('position'))
-    // console.log("camera");
-    // console.log(document.querySelector('#camera').getAttribute('position'))
-
-    document
-    .querySelector('[forcegraph]')
-    .components.forcegraph.forceGraph.children.forEach((child) => {
-      
-      if (child.type == 'Mesh' && child.__data.id) {
-        let sphereEl = this.spheres.get(child.__data.id)
-        
-        if (sphereEl) {
-          // reuse existing sphere and label, but change its position
-          
-          sphereEl.object3D.position.copy(child.position)
-          const currentRotation = sphereEl.object3D.rotation;
-          // sphereEl.setAttribute('look-at', '#cameraRig')
-          // console.log(currentRotation);
-          // sphereEl.setAttribute('rotation', currentRotation.x+10+' '+ currentRotation.y+' '+currentRotation.z)
-        } else {
-          sphereEl = document.createElement('a-sphere')
-          sphereEl.classList.add('node')
-          sphereEl.id = child.__data.id
-          this.spheres.set(child.__data.id, sphereEl)
-          let radius = child.geometry.parameters.radius + 0.1
-          sphereEl.setAttribute('radius', radius)
-          sphereEl.setAttribute('position', child.position)
-        
-          let color = child.__data.color || 'white'
-          let compColor = 'white'
-          sphereEl.setAttribute('color', color)
-          this.el.appendChild(sphereEl)
-          let label = document.createElement('a-entity')
-          let originalText = child.__data.short_label;
-          let splitText = originalText.length > 9 ? originalText.substring(0, 8) + '\n' + originalText.substring(9) : originalText;
-          let totalWidth = originalText.length * (radius*400 / 160)
-          let totalHeight = 2 * (radius * 400 / 160);
-          let labelBackground = document.createElement('a-entity');
-          labelBackground.setAttribute('geometry', {
-            primitive: 'plane',
-            width: totalWidth,
-            height: totalHeight
-            // height: 2 * 20 * 5 *radius
-          });
-          labelBackground.setAttribute('material',{
-            color: 'gray',
-            opacity: 0.5
-          });
-          labelBackground.setAttribute('position' ,{x : 0, y : 0, z : -1});
-          
-          label.setAttribute('text', {
-            value: originalText,
-            color: compColor,
-            width: radius*400,
-            align: 'center',
-            wrapCount: 160
-          });
-          // label.setAttribute('scale', '4 4 4');
-          // label.appendChild(labelBackground);
-          sphereEl.setAttribute('look-at', '#camera')
-          label.setAttribute('position', {x: 0, y: 0, z: 5*radius})
-          sphereEl.appendChild(label)
-        }
-      }
-      // const s = (document.querySelector('a-sphere'));
-      // s.setAttribute('radius', "10");
-    })
-      
-	},
-})
-spheresEntity.setAttribute('spherize', '');
-scene.appendChild(spheresEntity);
-// const fg = t.getAttribute('forcegraph');
-
-t.setAttribute('position', '0 0 -2000');
-t.setAttribute('rotation', '270 0 0');
-const c = document.querySelector("a-entity[wasd-controls]");
-c.setAttribute('acceleration', 300);
-const r = document.querySelector("a-entity[raycaster]");
-r.setAttribute('position', "0 -0.9 0");
-r.setAttribute('rotation', "90 0 0");
-spheresEntity.setAttribute('position', '0 0 -2000');
-spheresEntity.setAttribute('rotation', '270 0 0');
-
-  }, 1000);
 };
 
+function apply_changes() {
+  fix_z = fix_z - 100;
+  const scene = document.querySelector("a-scene");
+  // document.getElementById("forcegraph").setAttribute('position', '100 0.59 100')
+  const t = document.querySelector("a-entity[forcegraph]");
+  t.setAttribute("class", "clickable");
+  const rig = document.querySelector("a-entity");
+  rig.setAttribute("id", "cameraRig");
+  const camera = document.querySelector("[camera]");
+  camera.setAttribute("id", "camera");
+  const move = document.querySelector("[movement-controls]");
+  move.setAttribute("gamepad-controls", {
+    enabled: true,
+  });
+  console.log(move.components["gamepad-controls"]);
+  // const dialogEntity = document.createElement('a-entity');
+  // dialogEntity.setAttribute('dialog-popup','')
+  // dialogEntity.setAttribute('position', '0 0 -5')
+  // camera.appendChild(dialogEntity)
+  const controllers = document.querySelectorAll("a-entity[laser-controls]");
+  controllers.forEach(controller => {
+  //   console.log(controller);
+    controller.setAttribute('haptics','');
+    controller.setAttribute('remove-hud','');
+    controller.setAttribute('search-popup','');
+  });
+  // const leftHand = document.createElement('a-entity');
+  // const rightHand = document.createElement('a-entity');
+  // controllers[0].setAttribute('laser-controls','model', 'true');
+  // controllers[0].setAttribute('id','leftHand');
+  // // leftHand.setAttribute('raycaster', {lineColor: 'blue'});
+  // controllers[1].setAttribute('laser-controls','model', 'true');
+  // controllers[1].setAttribute('id','rightHand');
+
+  // rightHand.setAttribute('raycaster', {lineColor: 'blue',
+  // objects: '[forcegraph]'});
+  // rig.appendChild(rightHand);
+  // rig.appendChild(leftHand);
+  // console.log(rightHand);
+  // console.log(leftHand.getAttribute('raycaster'));
+
+  // lc.removeAttribute('daydream-controls');
+  // lc.removeAttribute('gearvr-controls');
+  // lc.removeAttribute('hp-mixed-reality-controls') ;
+  // lc.removeAttribute('magicleap-controls');
+  // lc.removeAttribute('oculus-go-controls') ;
+  // lc.removeAttribute('oculus-touch-controls');
+  // lc.removeAttribute('valve-index-controls');
+  // lc.removeAttribute('vive-controls');
+  // lc.removeAttribute('vive-focus-controls');
+  // lc.removeAttribute('windows-motion-controls');
+  // lc.removeAttribute('generic-tracked-controller-controls');
+  // lc.removeAttribute('laser-controls');
+  // const nodeHUD = document.createElement("a-entity");
+  // nodeHUD.setAttribute("geometry", {
+  //   primitive: 'plane',
+  //    height: 5,
+  //     width: 5,
+  // });
+  // nodeHUD.setAttribute("material", {
+  //   color: 'gray',
+  //   opacity: 0.5
+  // });
+  // nodeHUD.setAttribute("position", '0 0 -5');
+  // lc.appendChild(nodeHUD);
+  // lc.setAttribute("dropdown-controller",'');
+  // console.log(controllers[0].getAttribute('laser-controls'));
+  // console.log(controllers[1].getAttribute('laser-controls'));
+
+  /* helper for vasturiano/3d-force-graph-vr
+   *			draw a sphere around each force graph node, to make it easy to point to them with the ray caster,
+   * 			and attach a text label (which rotates to always face the camera)
+   * after the graph has been created, use something like
+   *			fgEl.setAttribute('spherize', {})
+   * to create the spheres
+   */
+  const fg = t.getAttribute("forcegraph");
+  const spheresEntity = document.createElement("a-entity");
+
+  AFRAME.registerComponent("spherize", {
+    schema: {},
+    dependencies: ["forcegraph"],
+    init: function () {
+      // spheres are cached here and re-used
+      this.spheres = new Map();
+    },
+    tick: function (time, timeDelta) {
+      // const controllers = document.querySelectorAll("a-entity[laser-controls]");
+      // console.log(controllers[0].getAttribute('laser-controls'));
+      document.querySelectorAll("a-entity[raycaster]").forEach((child) => {
+        // console.log(child.getAttribute('raycaster'));
+        child.setAttribute("raycaster", {
+          objects: "[forcegraph], .collidable",
+          // direction: "0 -1 0",
+        });
+        
+      });
+      document
+        .querySelector("[forcegraph]")
+        .components.forcegraph.forceGraph.children.forEach((child) => {
+          if (child.type == "Mesh" && child.__data.id) {
+            let sphereEl = this.spheres.get(child.__data.id);
+            if (sphereEl) {
+              // reuse existing sphere and label, but change its position
+
+              sphereEl.object3D.position.copy(child.position);
+              sphereEl.setAttribute("color",child.__data.color)
+            } else {
+              sphereEl = document.createElement("a-sphere");
+              sphereEl.classList.add("node");
+              sphereEl.id = child.__data.id;
+              this.spheres.set(child.__data.id, sphereEl);
+              let radius = child.__data.radius;
+              sphereEl.setAttribute("radius", radius - 0.1);
+              sphereEl.setAttribute("position", child.position);
+
+              let color = child.__data.color || "white";
+              let compColor = "white";
+              sphereEl.setAttribute("color", color);
+              this.el.appendChild(sphereEl);
+              let label = document.createElement("a-entity");
+              let originalText = child.__data.short_label;
+              let splitText =
+                originalText.length > 9
+                  ? originalText.substring(0, 8) +
+                    "\n" +
+                    originalText.substring(9)
+                  : originalText;
+              let totalWidth = originalText.length * ((radius * 400) / 160);
+              let totalHeight = 2 * ((radius * 400) / 160);
+              let labelBackground = document.createElement("a-entity");
+              labelBackground.setAttribute("geometry", {
+                primitive: "plane",
+                width: totalWidth,
+                height: totalHeight,
+              });
+              labelBackground.setAttribute("material", {
+                color: "gray",
+                opacity: 0.5,
+              });
+              labelBackground.setAttribute("position", { x: 0, y: 0, z: -1 });
+
+              label.setAttribute("text", {
+                value: originalText,
+                color: compColor,
+                width: radius * 400,
+                align: "center",
+                wrapCount: 160,
+              });
+              // label.setAttribute('scale', '4 4 4');
+              // label.appendChild(labelBackground);
+              sphereEl.setAttribute("look-at", "#camera");
+              label.setAttribute("position", { x: 0, y: 0, z: 5 * radius });
+              sphereEl.appendChild(label);
+            }
+          }
+          // const s = (document.querySelector('a-sphere'));
+          // s.setAttribute('radius', "10");
+        });
+    },
+  });
+  spheresEntity.setAttribute("spherize", "");
+  scene.appendChild(spheresEntity);
+  // const fg = t.getAttribute('forcegraph');
+
+  t.setAttribute("position", "0 0 -2000");
+  t.setAttribute("rotation", "270 0 0");
+  // const c = document.querySelector("a-entity[wasd-controls]");
+  // c.setAttribute('acceleration', 300);
+  const r = document.querySelector("a-entity[raycaster]");
+  r.setAttribute("raycaster", { 
+    objects: "[forcegraph], .collidable",
+    direction: "0 0 -1",
+ });
+ const rafter = document.querySelector("a-entity[raycaster]");
+
+  // r.setAttribute('position', "0 -0.9 0");
+  // r.setAttribute('rotation', "90 0 0");
+  spheresEntity.setAttribute("position", "0 0 -2000");
+  spheresEntity.setAttribute("rotation", "270 0 0");
+  // const removerComp = document.createElement("a-entity");
+  // removerComp.setAttribute("remove-hud", "");
+  // rig.appendChild(removerComp);
+}
 
 function init_search(data) {
   /*
@@ -945,9 +963,9 @@ function init_ontofetch_data(rawData, cache=null) {
 
 function getOntologyColor(node) {
   var prefix = get_term_prefix(node.id);
-  //console.log(node)
   if (prefix in prefix_color_mapping){
-    return colors[prefix_color_mapping[prefix].color];
+    let colorImlooking = colors[prefix_color_mapping[prefix].color];
+    return colorImlooking;
   }
 
   console.log ('Missing color for ontology prefix ' + prefix + ' in ' + node.id);
@@ -1327,41 +1345,93 @@ function setNodeReport(node = {}) {
   }
 }
 
-function nodeClickVR(node = {}){
+function nodeClickVR(node = {}) {
   //need to deselect other clicked nodes
-
+  const fg = document.querySelector("[forcegraph]");
   if (node.x) {
-    console.log("h")
-    const controller = document.querySelector("a-entity[laser-controls]")
-    controller.components.haptics.pulse(1,200);
+    if (document.querySelector("#nodeHUD")) {
+      document
+        .querySelector("[forcegraph]")
+        .components.forcegraph.data.nodes.forEach((node) => {
+          const col = getOntologyColor(node);
+          const numericColor = parseInt(col.substring(1), 16);
+          node.marker.material.color.setHex(numericColor);
+          node.color = col;
+        });
+    const HUDel = document.querySelector("#nodeHUD");
+    HUDel.parentNode.removeChild(HUDel);
+    }
+    const controller = document.querySelector("a-entity[laser-controls]");
+    controller.components.haptics.pulse(1, 200);
     const camera = document.querySelector("#camera");
     const nodeHUD = document.createElement("a-entity");
+    const header = document.createElement("a-entity");
+    const body = document.createElement("a-entity");
+    const parents = document.createElement("a-entity");
+    const children = document.createElement("a-entity");
+    const mixin =document.createElement("a-mixin");
+
+    nodeHUD.setAttribute("id", "nodeHUD");
+    nodeHUD.setAttribute("class", "clickable");
+    const value = node.id+"\n"+node.marker.__data["IAO:0000115"];
     nodeHUD.setAttribute("geometry", {
-      primitive: 'plane',
-       height: 5,
-        width: 2.5,
+      primitive: "plane",
+      height: 2.5,
+      width: 2.5,
     });
     nodeHUD.setAttribute("material", {
-      color: 'gray',
-      opacity: 0.5
+      color: "gray",
+      opacity: 0.5,
     });
-    nodeHUD.setAttribute("text", {
-      value: "test"
+    header.setAttribute("text", {
+      value: node.id+"\n"+node["rdfs:label"],
+      align: "center",
+      baseline: 'top',
+      width: 2.5,
     });
-    nodeHUD.setAttribute("position", '-2.5 0 -5');
-    nodeHUD.setAttribute("look-at",'#camera');
+    header.setAttribute("position", "0 1 0")
+    
+    // header.setAttribute("position", "0 2 0");
+    body.setAttribute("text", {
+      value: node.marker.__data["IAO:0000115"],
+      align: 'justify',
+      width: 2.5
+    });
+    const parent_id = node.parent_id;
+    const parent = top.dataLookup[parent_id]
+    const parent_label = parent ? parent['rdfs:label'] : parent_id;
+    parents.setAttribute("text", {
+      value: 'Parent: '+parent_label,
+      align: 'left',
+      width: 2.5,
+      anchor: 'left'
+    });
+    parents.setAttribute("position", "-1 -1 0");
+    children.setAttribute("text", {
+      value: node.parentNode,
+      align: 'right',
+      width: 2.5,
+      anchor: 'left'
+    });
+    nodeHUD.appendChild(header);
+    nodeHUD.appendChild(body);
+    nodeHUD.appendChild(parents);
+    nodeHUD.appendChild(children);
+    nodeHUD.setAttribute("position", "-1 0 -5");
+    nodeHUD.setAttribute("look-at", "#camera");
     camera.appendChild(nodeHUD);
-    // Color assigned here but rendered color isn't actually affected until 
+    // Color assigned here but rendered color isn't actually affected until
     // AFTER next rebuild of graph/viewport.
-    node.color = 'red'; 
+    node.color = "red";
 
     // This sets visual color directly in rendering engine so we don't have to
     // rerender graph as a whole!
     if (node.marker && node.marker.material) {
-      node.marker.material.color.setHex(0xFF0000); 
+      node.marker.material.color.setHex(0xff0000);
+      // node.
       if (node.depth > 2) {
-        node.marker.scale.x = 3
-        node.marker.scale.y = 3
+        // node.marker.scale.x = 3;
+        // node.marker.scale.y = 3;
         //node.marker.scale.z = 3
       }
     }
@@ -1369,14 +1439,7 @@ function nodeClickVR(node = {}){
 }
 
 function nodeHoverVR(node = {}){
-  if(node){
-    const dialog = document.querySelector('a-entity[dialog-popup]');
-    dialog.setAttribute('dialog-popup', {
-      title: 'test',
-      body: 'test',
-      dialogBoxWidth: 25,
-      dialogBoxHeight: 25,
-      openOn: 'triggerDown'
-    });
-  }
+  // if(node){
+  //   const dialog = document.querySelector('a-entity[dialog-popup]');
+  // }
 }

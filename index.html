@@ -3,12 +3,12 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" sizes="16x16 32x32 64x64" href="img/favicon.ico">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <!-- <link rel="icon" sizes="16x16 32x32 64x64" href="img/favicon.ico"> -->
+  <!-- <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
   <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
   <link rel="shortcut icon" href="img/favicon.ico">
   <link rel="shortcut icon" sizes="64x64" href="img/favicon-64.png">
-  <link rel="apple-touch-icon" href="img/icon-64x64.png">
+  <link rel="apple-touch-icon" href="img/icon-64x64.png"> -->x
 
   <link rel="stylesheet" href="css/foundation.css">
   <link rel="stylesheet" href="css/foundation-icons.css">
@@ -20,10 +20,11 @@
   <script src="//unpkg.com/3d-force-graph-vr"></script>
   <!-- <script src="js/3d-force-graph-vr.min.js"></script> -->
   <script src="//unpkg.com/three-spritetext"></script>
-  <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+  <script src="//unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
   <!-- <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v6.1.0/dist/aframe-extras.min.js"></script> -->
   <script src="https://unpkg.com/aframe-haptics-component/dist/aframe-haptics-component.min.js"></script>
-  <script src="js/dialog-popup-component.js"></script> 
+  <!-- <script src="https://unpkg.com/aframe-html-shader@0.2.0/dist/aframe-html-shader.min.js"></script> -->
+  <!-- <script src="js/dialog-popup-component.js"></script>  -->
   <script type="importmap">
     {
       "imports": {
@@ -38,7 +39,7 @@
   <div class="grid-container">
     <div class="grid-x grid-padding-x">
       <div class="large-12 cell">
-        <h3> <img src="img/favicon-32.png" width="32" align="left" style="margin:5px" /> OntoTrek 3D Viewer</h3>
+        <h3> <img  width="32" align="left" style="margin:5px" /> OntoTrek 3D Viewer</h3>
       </div>
     </div>
 
@@ -46,7 +47,7 @@
       <div class="large-8 cell">
         <div class="callout" style="padding:0">
           <div id="3d-graph">
-            <img src="img/introduction.png" style="margin:15px;border:2px solid silver" />
+            <img  style="margin:15px;border:2px solid silver" />
           </div>
         </div>
       </div>
@@ -435,6 +436,7 @@
     <script src="js/rdflib.min.js"></script>
     <script src="js/GLTFExporter.js"></script>
     <script src="js/components.js"></script>
+    <script src="js/aframe-keyboard.min.js"></script>
     <!-- <script>
       // Function to check if the graph has finished loading
       function checkGraphLoaded() {
