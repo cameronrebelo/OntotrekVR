@@ -285,11 +285,11 @@ function init(load=false, nodes=null, links=null) {
     // IS THERE A WAY TO FORCE CAMERA TO only pan, and rotate on x,y but not Z ?
     // .cameraPosition({x:0, y:-4000, z: 2000 }, {x:0, y:0, z: 0 })
     //.linkWidth(link => link === highlightLink ? 4 : 1)
-    // .linkWidth(function(link) {
-    //   // 
-    //   return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
-    // })
-    .linkWidth(4)
+    .linkWidth(function(link) {
+      // 
+      return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
+    })
+    // .linkWidth(4)
 
     // Note d.target is an object!
     /*.linkAutoColorBy(d => d.target.color})*/
@@ -379,10 +379,10 @@ function init(load=false, nodes=null, links=null) {
     // IS THERE A WAY TO FORCE CAMERA TO only pan, and rotate on x,y but not Z ?
     // .cameraPosition({x:0, y:-4000, z: 2000 }, {x:0, y:0, z: 0 })
     //.linkWidth(link => link === highlightLink ? 4 : 1)
-    // .linkWidth(function(link) {
-    //   // 
-    //   return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
-    // })
+    .linkWidth(function(link) {
+      // 
+      return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
+    })
     .linkHeight(4)
     // Note d.target is an object!
     /*.linkAutoColorBy(d => d.target.color})*/
@@ -670,14 +670,573 @@ Number.prototype.within = function(a, b) {
   return this >= min && this <= max;
 };
 
+function apply_changes() {
+  fix_z = fix_z - 100;
+  const scene = document.querySelector("a-scene");
+  // document.getElementById("forcegraph").setAttribute('position', '100 0.59 100')
+  const t = document.querySelector("a-entity[forcegraph]");
+  t.setAttribute("class", "clickable");
+  const rig = document.querySelector("a-entity");
+  rig.setAttribute("id", "cameraRig");
+  const camera = document.querySelector("[camera]");
+  camera.setAttribute("id", "camera");
+  const move = document.querySelector("[movement-controls]");
+  move.setAttribute("gamepad-controls", {
+    enabled: true,
+  });
+  move.setAttribute("haptics", "");
+  console.log(move.components["gamepad-controls"]);
+  // const dialogEntity = document.createElement('a-entity');
+  // dialogEntity.setAttribute('dialog-popup','')
+  // dialogEntity.setAttribute('position', '0 0 -5')
+  // camera.appendChild(dialogEntity)
+  const controllers = document.querySelectorAll("a-entity[laser-controls]");
+  controllers.forEach((controller) => {
+    //   console.log(controller);
+    controller.setAttribute("haptics", "");
+    controller.setAttribute("remove-hud", "");
+    controller.setAttribute("search-popup", "");
+  });
 
+  /* helper for vasturiano/3d-force-graph-vr
+   *			draw a sphere around each force graph node, to make it easy to point to them with the ray caster,
+   * 			and attach a text label (which rotates to always face the camera)
+   * after the graph has been created, use something like
+   *			fgEl.setAttribute('spherize', {})
+   * to create the spheres
+   */
+  const fg = t.getAttribute("forcegraph");
+  const spheresEntity = document.createElement("a-entity");
+
+  AFRAME.registerComponent("spherize", {
+    schema: {},
+    dependencies: ["forcegraph"],
+    init: function () {
+      // spheres are cached here and re-used
+      this.spheres = new Map();
+    },
+    tick: function (time, timeDelta) {
+      // const controllers = document.querySelectorAll("a-entity[laser-controls]");
+      // console.log(controllers[0].getAttribute('laser-controls'));
+      document.querySelectorAll("a-entity[raycaster]").forEach((child) => {
+        // console.log(child.getAttribute('raycaster'));
+        child.setAttribute("raycaster", {
+          objects: "[forcegraph], .collidable",
+          // direction: "0 -1 0",
+        });
+      });
+      document
+        .querySelector("[forcegraph]")
+        .components.forcegraph.forceGraph.children.forEach((child) => {
+          if (child.type == "Mesh" && child.__data.id) {
+            let sphereEl = this.spheres.get(child.__data.id);
+            if (sphereEl) {
+              // reuse existing sphere and label, but change its position
+
+              sphereEl.object3D.position.copy(child.position);
+              sphereEl.setAttribute("color", child.__data.color);
+            } else {
+              sphereEl = document.createElement("a-entity");
+              sphereEl.classList.add("node");
+              sphereEl.id = child.__data.id;
+              this.spheres.set(child.__data.id, sphereEl);
+              let radius = child.__data.radius;
+              child.__data.radius = 5 * radius;
+              // sphereEl.setAttribute("radius", radius - 0.1);
+              sphereEl.setAttribute("position", child.position);
+
+              let color = child.__data.color || "white";
+              let compColor = "white";
+              sphereEl.setAttribute("color", color);
+              this.el.appendChild(sphereEl);
+              let label = document.createElement("a-entity");
+              let originalText = child.__data.short_label;
+              let splitText =
+                originalText.length > 9
+                  ? originalText.substring(0, 8) +
+                    "\n" +
+                    originalText.substring(9)
+                  : originalText;
+              let totalWidth = originalText.length * ((radius * 400) / 160);
+              let totalHeight = 2 * ((radius * 400) / 160);
+              let labelBackground = document.createElement("a-entity");
+              labelBackground.setAttribute("geometry", {
+                primitive: "plane",
+                width: totalWidth,
+                height: totalHeight,
+              });
+              labelBackground.setAttribute("material", {
+                color: "gray",
+                opacity: 0.5,
+              });
+              labelBackground.setAttribute("position", { x: 0, y: 1, z: -1 });
+
+              label.setAttribute("text", {
+                value: originalText,
+                color: compColor,
+                width: radius * 400,
+                align: "center",
+                wrapCount: 160,
+              });
+              // label.setAttribute('scale', '4 4 4');
+              // label.appendChild(labelBackground);
+              sphereEl.setAttribute("look-at", "#camera");
+              label.setAttribute("position", {
+                x: 0,
+                y: 5 * radius,
+                z: 5 * radius,
+              });
+              sphereEl.appendChild(label);
+            }
+          }
+          // const s = (document.querySelector('a-sphere'));
+          // s.setAttribute('radius', "10");
+        });
+    },
+  });
+  spheresEntity.setAttribute("spherize", "");
+  scene.appendChild(spheresEntity);
+  // const fg = t.getAttribute('forcegraph');
+
+  t.setAttribute("position", "0 0 -2000");
+  t.setAttribute("rotation", "270 0 0");
+  // const c = document.querySelector("a-entity[wasd-controls]");
+  // c.setAttribute('acceleration', 300);
+  const r = document.querySelector("a-entity[raycaster]");
+  r.setAttribute("raycaster", {
+    objects: "[forcegraph], .collidable",
+    direction: "0 0 -1",
+  });
+
+  spheresEntity.setAttribute("position", "0 0 -2000");
+  spheresEntity.setAttribute("rotation", "270 0 0");
+}
+
+
+function init_ontofetch_data(rawData, cache = null) {
+  /*
+  This is a 2 pass algorithm.
   
-/* Add to do_graph() to navigate to a particular node
-  // Navigate to root BFO node if there is one. Slight delay to enable
-  // engine to create reference points.  Ideally event for this.
-  if('BFO:0000001' in top.dataLookup) {
-    setTimeout(function(){
-      setNodeReport(top.dataLookup['BFO:0000001']) 
-    }, 2000)
-  }
+  1st pass: Establish node depth and label, and color based on node prefix.
+  2nd pass: Establish links and adjust according to parent node depth.
+
+  INPUT
+    rawData.term: Array of nodes
+
   */
+
+  top.dataLookup = {};
+  top.linkLookup = {};
+
+  let data = { nodes: [], links: [] };
+
+  if (!rawData) return data;
+
+  // 1st pass does all the nodes.
+  for (var item in rawData.term) {
+    let node = rawData.term[item];
+
+    if (!node["owl:deprecated"] || RENDER_DEPRECATED) {
+      try {
+        if (cache != null) {
+          let cached_node = cache.filter((obj) => {
+            return obj.id == item;
+          })[0];
+
+          node.x = cached_node.x;
+          node.y = cached_node.y;
+          node.z = cached_node.z;
+        }
+      } catch {
+        console.log("Warning: A node is undefined");
+      }
+
+      node.children = [];
+      node.color = null;
+      node.depth = 0;
+      node.group_id = null;
+      node.prefix = get_term_prefix(node.id);
+      set_node_label(node);
+      data.nodes.push(node);
+      top.dataLookup[node.id] = node;
+
+      let ancestors = [node];
+      let focus = node;
+      while (focus.parent_id) {
+        if (focus.id == focus.parent_id) {
+          console.log("ERROR: ontology term has itself as parent:" + focus.id);
+          focus.depth = 1;
+          break;
+        }
+        if (!rawData.term[focus.parent_id]) {
+          focus.depth = 1;
+          break;
+        }
+
+        focus = rawData.term[focus.parent_id];
+
+        if (focus.depth) {
+          // already calculated depth.
+          break;
+        }
+        if (!focus.parent_id) {
+          focus.depth = 1;
+          break;
+        }
+        ancestors.push(focus);
+      }
+      // focus now has depth to convey to all ancestors
+      // Ancestors are in reverse order, from shallowest to deepest.
+      // Bizarrely, ptr is a string if using "(ptr in ancestors)" !
+      for (var ptr = 0; ptr < ancestors.length; ptr++) {
+        // Don't use ancestor = ancestors.pop(); seems to intefere with data.nodes ???
+        let ancestor = ancestors[ancestors.length - ptr - 1];
+        ancestor.depth = focus.depth + ptr + 1;
+      }
+    }
+  }
+
+  // To support the idea that graph can work on top-level nodes first
+  data.nodes.sort(function (a, b) {
+    return a.depth - b.depth;
+  });
+
+  // If custom render depth chosen, chop nodes deeper than that.
+  if (RENDER_DEPTH != 50) {
+    data.nodes = data.nodes.filter((n) => n.depth <= RENDER_DEPTH);
+  }
+
+  // Establish lookup table for all nodes
+  data.nodes.forEach((n, idx) => {
+    top.dataLookup[n.id] = n;
+  });
+
+  // 2nd pass does LINKS organized by depth, i.e. allowing inheritance of properties:
+  for (let item in data.nodes) {
+    let node = data.nodes[item];
+    // Size node according to proximity to depth 0.
+    node.radius = Math.pow(2, 7 - node.depth); // # of levels
+
+    // Any node which has a layout record including custom color, gets group_id = itself.
+    if (top.layout[node.id] && top.layout[node.id].color) {
+      node.group_id = node.id;
+
+      // Color by layout overrides all
+      let layout_group = top.layout[node.id];
+      if (layout_group.color) {
+        node.color = top.colors[layout_group.color];
+      }
+    }
+
+    // Otherwise node.group is inherited from parent
+    if (node.parent_id) {
+      const parent = top.dataLookup[node.parent_id];
+      if (parent) {
+        if (!node.group_id && parent.group_id) {
+          node.group_id = parent.group_id;
+        }
+        set_link(data.links, parent, node, node.radius);
+      }
+    }
+
+    // Color by ontology
+    if (node.color === null) {
+      node.color = getOntologyColor(node);
+    }
+  }
+
+  if (RENDER_DEPTH != 50) {
+    // Chop link content off by depth that user specified.
+    // top.dataLookup only has nodes included in graph to given depth at this point.
+    data.links = data.links.filter(
+      (l) => top.dataLookup[l.source] && top.dataLookup[l.target]
+    );
+  }
+
+  data.nodes = preposition_nodes(data.nodes);
+
+  set_legend(data);
+
+  return data;
+}
+
+function getOntologyColor(node) {
+  var prefix = get_term_prefix(node.id);
+  if (prefix in prefix_color_mapping) {
+    let colorImlooking = colors[prefix_color_mapping[prefix].color];
+    return colorImlooking;
+  }
+
+  console.log("Missing color for ontology prefix " + prefix + " in " + node.id);
+  return "red";
+}
+
+function set_node_label(node) {
+  /* Makes a clipped short_label for long labels.
+  Also ensures id is shown if term has no rdfs:label
+  */
+  var label = node["rdfs:label"]; // was node.label
+  if (label) {
+    // label derived from node's first few words ...
+    node.short_label = label.replace(LABEL_RE, "$1*");
+    if (node.short_label.indexOf("*") > 0)
+      node.short_label = node.short_label.split("*", 1)[0] + " ...";
+  } else {
+    node.label = node.id;
+    node.short_label = node.id;
+  }
+}
+
+/* Creates a new link in given links array
+@param source node
+@param target node
+@param radius integer
+@param label string [of node, not used]
+@parap color: string Highlight color of link
+*/
+function set_link(
+  links,
+  source,
+  target,
+  radius,
+  label = "",
+  color = null,
+  other = false
+) {
+  // Issue: after this is rendered, seems to switch source,target to objects?
+  var link = {
+    source: source.id,
+    target: target.id,
+    label: label,
+    highlight_color: color, // Hex or string
+    width: radius,
+    other: other,
+  };
+
+  links.push(link);
+  top.dataLookup[source.id].children.push(target.id);
+  top.linkLookup[source.id + "-" + target.id] = link;
+
+  return link;
+}
+
+function get_node_radius(node, fancyLayout) {
+  /*
+  Vary node radius by depth from root of structure.
+  */
+  if (node.highlight) return 20;
+  if (node.radius > GRAPH_NODE_RADIUS) return node.radius;
+  return GRAPH_NODE_RADIUS;
+}
+
+function preposition_nodes(nodes) {
+  /* 
+  Force graph begins dynamics normally by randomly placing nodes, but 
+  this leads to challenging situations where nodes are not even remotely 
+  where they should be - and their edge attraction can't get them back
+  to local context.
+  */
+  for (var item in nodes) {
+    var node = nodes[item];
+
+    if (!RENDER_GALAXY)
+      // Initially fix all nodes
+      node.fz = node_depth(node);
+
+    // Give initial x,y hint based on parents
+    var layout_node = top.layout[node.id];
+    if (layout_node) {
+      node.fz = node_depth(node);
+      node.fx = layout_node.x;
+      node.x = layout_node.x;
+      node.fy = layout_node.y;
+      node.y = layout_node.y;
+    }
+
+    /*
+    else // Is this working at all? Doesn't seem like it.
+      if (node.parent_id) {
+        var parent = top.dataLookup[node.parent_id]
+        if (parent && parent.x !== undefined) {
+          node.x = parent.x +  parseInt(Math.random() * 20-10)
+          node.y = parent.y +  parseInt(Math.random() * 20-10)
+        }
+      }
+  */
+  }
+  return nodes;
+}
+
+function node_depth(node) {
+  /*
+  Returns depth tier calculated as 1000 - depth of node from top of hierarchy in 
+  GRAPH_NODE_DEPTH increments, but with first 6 levels having a power relation
+  So 0:1024, 1:512, 2:256, 3:128, 4:64, 5: -100, 6: -200, 7: -300 etc.
+  */
+  base = node.depth < 11 ? 2 ** (10 - node.depth) : 0;
+  return base - (node.depth - 4) * GRAPH_NODE_DEPTH;
+}
+
+function render_node(node) {
+  // Displays semi-sphere, then overlays with label text
+  var group = new THREE.Group();
+  var fancyLayout = layout[node.id] || !RENDER_QUICKER;
+  var nodeRadius = get_node_radius(node, fancyLayout);
+
+  var geometry = new THREE.SphereGeometry(nodeRadius / 2, 24, 16, 0); // (nodeRadius, 6, 4, 0, Math.PI) does 1/2 sphere
+  var material = new THREE.MeshBasicMaterial({ color: node.color });
+  var circle = new THREE.Mesh(geometry, material);
+  circle.position.set(0, 0, 0);
+  group.add(circle);
+  node.marker = circle;
+  return circle;
+  
+}
+
+function get_term_prefix(entity_id) {
+  return entity_id ? entity_id.split(":")[0].split("#")[0] : null;
+}
+
+function lookup_url(term_id, label) {
+  /* Returns HTML link of full "native" term URI, as well as OLS link.
+   */
+
+  if (!label) label = top.dataLookup[term_id].label;
+
+  var ols_lookup_URL = null;
+  // If no prefix, then whole term_id returned, and its probably a URI
+  var prefix = get_term_prefix(term_id);
+  if (prefix == term_id) {
+    var term_url = term_id;
+  } else {
+    // A prefix was recognized
+    ols_lookup_URL = `https://www.ebi.ac.uk/ols/ontologies/${prefix}/terms?iri=`;
+    term_url = top.RAW_DATA["@context"][prefix];
+    if (!term_url) {
+      term_url = ONTOLOGY_LOOKUP_URL;
+    }
+    term_url = term_url + term_id.split(/[:#]/)[1];
+  }
+
+  return (
+    `<a href="${term_url}" target="_term">${label}</a>` +
+    (ols_lookup_URL
+      ? `, <a href="${ols_lookup_URL}${term_url}" target="_term">OLS</a> `
+      : "")
+  );
+}
+
+function get_term_id_urls(parent_list) {
+  /* Gets HTML link list of all parents so one can click on them to navigate.
+    
+  */
+  var parent_uris = [];
+  if (parent_list) {
+    for (ptr in parent_list) {
+      const parent_id = parent_list[ptr];
+      var parent = top.dataLookup[parent_id];
+      if (parent) {
+        if (parent["rdfs:label"]) parent_label = parent["rdfs:label"];
+        else parent_label = parent_id;
+        parent_uris.push(
+          `<span class="focus" onclick="setNodeReport(top.dataLookup['${parent_id}'])">${parent_label}</span>`
+        );
+      }
+      // alternate parents may not be in current node graph
+      /* else {
+        parent_uris.push('unrecognized: ' + parent_id)
+      } */
+    }
+  }
+  return parent_uris.length ? parent_uris.join(", ") : null;
+}
+
+function nodeClickVR(node = {}) {
+  //First make all nodes return to original colour
+  if (node) {
+    if (document.querySelector("#nodeHUD")) {
+      document
+        .querySelector("[forcegraph]")
+        .components.forcegraph.data.nodes.forEach((node) => {
+          const col = getOntologyColor(node);
+          const numericColor = parseInt(col.substring(1), 16);
+          node.marker.material.color.setHex(numericColor);
+          node.color = col;
+        });
+      //clear the HUD
+      const HUDel = document.querySelector("#nodeHUD");
+      HUDel.parentNode.removeChild(HUDel);
+    }
+    //Creating the HUD
+    const camera = document.querySelector("#camera");
+    const nodeHUD = document.createElement("a-entity");
+    const header = document.createElement("a-entity");
+    const body = document.createElement("a-entity");
+    const parents = document.createElement("a-entity");
+    const children = document.createElement("a-entity");
+
+    nodeHUD.setAttribute("id", "nodeHUD");
+    nodeHUD.setAttribute("class", "clickable"); //make the node interactable with the raycaster
+
+    nodeHUD.setAttribute("geometry", {
+      primitive: "plane",
+      height: 2.5,
+      width: 2.5,
+    });
+    nodeHUD.setAttribute("material", {
+      color: "gray",
+      opacity: 0.5,
+    });
+    header.setAttribute("text", {
+      value: node.id + "\n" + node["rdfs:label"],
+      align: "center",
+      baseline: "top",
+      width: 2.5,
+    });
+    header.setAttribute("position", "0 1 0");
+
+    body.setAttribute("text", {
+      value: node.marker.__data["IAO:0000115"],
+      align: "justify",
+      width: 2.5,
+    });
+    const parent_id = node.parent_id;
+    const parent = top.dataLookup[parent_id];
+    const parent_label = parent ? parent["rdfs:label"] : parent_id;
+    parents.setAttribute("text", {
+      value: "Parent: " + parent_label,
+      align: "left",
+      width: 2.5,
+      anchor: "left",
+    });
+    parents.setAttribute("position", "-1 -1 0");
+    children.setAttribute("text", {
+      value: node.parentNode,
+      align: "right",
+      width: 2.5,
+      anchor: "left",
+    });
+    nodeHUD.appendChild(header);
+    nodeHUD.appendChild(body);
+    nodeHUD.appendChild(parents);
+    nodeHUD.appendChild(children);
+    nodeHUD.setAttribute("position", "-1 0 -5");
+    nodeHUD.setAttribute("look-at", "#camera");
+    camera.appendChild(nodeHUD);
+    // Color assigned here but rendered color isn't actually affected until
+    // AFTER next rebuild of graph/viewport.
+    node.color = "red";
+
+    // This sets visual color directly in rendering engine so we don't have to
+    // rerender graph as a whole!
+    if (node.marker && node.marker.material) {
+      node.marker.material.color.setHex(0xff0000);
+      // node.
+      if (node.depth > 2) {
+        // node.marker.scale.x = 3;
+        // node.marker.scale.y = 3;
+        //node.marker.scale.z = 3
+      }
+    }
+  }
+}

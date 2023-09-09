@@ -79,4 +79,13 @@ select.float-left {
     padding: 3px 10px 3px 10px;
     margin: 3px;}
 
+.searchBarVR {
+		display: inline-block;
+		color: white;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100%;
+}
+
 #trace_content {font-size:.8rem;}
