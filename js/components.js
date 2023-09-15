@@ -31,6 +31,92 @@
 //       });
 //     }
 //   });
+AFRAME.registerComponent("spherize", {
+  schema: {},
+  dependencies: ["forcegraph"],
+  init: function () {
+    // spheres are cached here and re-used
+    this.spheres = new Map();
+  },
+  tick: function (time, timeDelta) {
+    // const controllers = document.querySelectorAll("a-entity[laser-controls]");
+    // console.log(controllers[0].getAttribute('laser-controls'));
+    document.querySelectorAll("a-entity[raycaster]").forEach((child) => {
+      // console.log(child.getAttribute('raycaster'));
+      child.setAttribute("raycaster", {
+        objects: "[forcegraph], .collidable",
+        // direction: "0 -1 0",
+      });
+    });
+    document
+      .querySelector("[forcegraph]")
+      .components.forcegraph.forceGraph.children.forEach((child) => {
+        if (child.type == "Mesh" && child.__data.id) {
+          let sphereEl = this.spheres.get(child.__data.id);
+          if (sphereEl) {
+            // reuse existing sphere and label, but change its position
+
+            sphereEl.object3D.position.copy(child.position);
+            sphereEl.setAttribute("color", child.__data.color);
+          } else {
+            sphereEl = document.createElement("a-entity");
+            sphereEl.classList.add("node");
+            sphereEl.id = child.__data.id;
+            this.spheres.set(child.__data.id, sphereEl);
+            let radius = child.__data.radius;
+            child.__data.radius = 5 * radius;
+            // sphereEl.setAttribute("radius", radius - 0.1);
+            sphereEl.setAttribute("position", child.position);
+
+            let color = child.__data.color || "white";
+            let compColor = "white";
+            sphereEl.setAttribute("color", color);
+            this.el.appendChild(sphereEl);
+            let label = document.createElement("a-entity");
+            let originalText = child.__data.short_label;
+            let splitText =
+              originalText.length > 9
+                ? originalText.substring(0, 8) +
+                  "\n" +
+                  originalText.substring(9)
+                : originalText;
+            let totalWidth = originalText.length * ((radius * 400) / 160);
+            let totalHeight = 2 * ((radius * 400) / 160);
+            let labelBackground = document.createElement("a-entity");
+            labelBackground.setAttribute("geometry", {
+              primitive: "plane",
+              width: totalWidth,
+              height: totalHeight,
+            });
+            labelBackground.setAttribute("material", {
+              color: "gray",
+              opacity: 0.5,
+            });
+            labelBackground.setAttribute("position", { x: 0, y: 1, z: -1 });
+
+            label.setAttribute("text", {
+              value: originalText,
+              color: compColor,
+              width: radius * 400,
+              align: "center",
+              wrapCount: 160,
+            });
+            // label.setAttribute('scale', '4 4 4');
+            // label.appendChild(labelBackground);
+            sphereEl.setAttribute("look-at", "#camera");
+            label.setAttribute("position", {
+              x: 0,
+              y: 5 * radius,
+              z: 5 * radius,
+            });
+            sphereEl.appendChild(label);
+          }
+        }
+        // const s = (document.querySelector('a-sphere'));
+        // s.setAttribute('radius', "10");
+      });
+  },
+});
 AFRAME.registerComponent("remove-hud", {
   init: function () {
     // Listen for the gamepadbuttondown event

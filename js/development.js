@@ -1,4 +1,3 @@
-
 /*****************************************************************************
 development2.js interface for 3d-force-graph
 ******************************************************************************/
@@ -57,98 +56,6 @@ const SYNONYM_FIELD = ["synonyms",
   "oboInOwl:hasNarrowSynonym", 
   "oboInOwl:hasRelatedSynonym"
 ]
-
-// function load_graph(rawData) {
-//   $(document.body).css({'cursor' : 'wait'});
-
-//   top.Graph = ForceGraph3D({controlType: 'trackball'})(document.getElementById('3d-graph'))
-
-//   // Using dfault D3 engine so we can pin nodes via { id: 0, fx: 0, fy: 0, fz: 0 }
-//   .forceEngine('d3')
-//   .d3Force('center', null)  // Enables us to add nodes without shifting centre of mass or having a centre attractor
-//   //.d3Force('charge').strength(GRAPH_CHARGE_STRENGTH)
-//   .width(GRAPH_DOM_EL.width())
-//   .warmupTicks(0)
-//   //.cooldownTime(GRAPH_COOLDOWN_TIME)
-//   .cooldownTicks(GRAPH_COOLDOWN_TICKS)
-//   .backgroundColor(GRAPH_BACKGROUND_COLOR)
-
-//   // Getter/setter for the simulation intensity decay parameter, only 
-//   // applicable if using the d3 simulation engine.  
-//   .d3AlphaDecay(GRAPH_ALPHA_DECAY) // default 0.0228
-  
-//   // Getter/setter for the nodes' velocity decay that simulates the medium
-//   // resistance, only applicable if using the d3 simulation engine.
-//   .d3VelocityDecay(GRAPH_VELOCITY_DECAY)  // default 0.4
-
-//   // IS THERE A WAY TO FORCE CAMERA TO only pan, and rotate on x,y but not Z ?
-//   .cameraPosition({x:0, y:0, z: 3000 },{x:0, y:0, z: 0 })
-//   //.linkWidth(link => link === highlightLink ? 4 : 1)
-//   .linkWidth(function(link) {
-//     // 
-//     return link.highlight ? GRAPH_LINK_HIGHLIGHT_RADIUS : link.width > GRAPH_LINK_WIDTH ? link.width : GRAPH_LINK_WIDTH
-//   })
-//   // It would be great if we could make it dashed instead
-//   .linkColor(function(link) {
-//     return link.highlight ? link.highlight : link.color
-//   })
-
-//   .linkResolution(3) // 3 sided, i.e. triangular beam
-//   .linkOpacity(1)
-
-//   //.nodeAutoColorBy('color')
-//   // Note d.target is an object!
-//   /*.linkAutoColorBy(d => d.target.color})*/
-
-//   // Text shown on mouseover.  WAS node.label
-//   .nodeLabel(node => `<div>${node['rdfs:label']}<br/><span class="tooltip-id">${node.id}</span></div>`) 
-
-//   //.nodeColor(node => node.highlight ? 'color) // Note: this triggers refresh on each animation cycle
-//   //.nodeColor(node => highlightNodes.indexOf(node) === -1 ? 'rgba(0,255,255,0.6)' : 'rgb(255,0,0,1)')
-//   //.nodeColor(node => node.highlight ? '#F00' : node.color ) 
-  
-//   // Not doing anything...
-//   .nodeRelSize(node => node.highlight ? 18 : 4 ) // 4 is default
-//   .onNodeHover(node => GRAPH_DOM_EL[0].style.cursor = node ? 'pointer' : null)
-//   .onLinkClick(link => {node_focus(link.target)})
-//   .onNodeClick(node => node_focus(node))
-//   .nodeThreeObject(node => render_node(node))
-
-//   top.rawData = rawData
-//   node_focus()
-
-//   // Usual case for GEEM ontofetch.py ontology term specification table:
-//   data = init_ontofetch_data(rawData)
-//   init_search(data) 
-
-//   var request = new XMLHttpRequest();
-//   request.open("GET", "../data/trees/agro_nodes.json", false);
-//   request.send(null)
-//   var nodes = JSON.parse(request.responseText);
-  
-//   var request = new XMLHttpRequest();
-//   request.open("GET", "../data/trees/agro_links.json", false);
-//   request.send(null)
-//   var links = JSON.parse(request.responseText);
-
-//   $("#status").html(top.builtData.nodes.length + " terms");
-
-//   // Chop the data into two parts so first pulls most upper level categories into position.
-//   //var tempQ = top.RENDER_QUICKER
-//   //var tempL = top.RENDER_LABELS
-//   top.RENDER_QUICKER = false
-//   top.RENDER_LABELS = true
-
-//   top.Graph
-//     //.linkDirectionalParticles(0)
-//     .d3Force('center', null)
-//     .d3Force('charge').strength(GRAPH_CHARGE_STRENGTH)
-
-//   Graph.graphData({nodes:nodes, links:links})
-
-//   $(document.body).css({'cursor' : 'default'});
-
-// }
 
 function getJSON(path) {
   return fetch(path).then(response => response.text());
@@ -343,7 +250,7 @@ function init(load=false, nodes=null, links=null) {
     
     // Not doing anything...
     .nodeRelSize(node => node.highlight ? 18 : 4 ) // 4 is default
-    .onNodeHover(node => nodeHoverVR(node))
+    // .onNodeHover(node => nodeHoverVR(node))
     // .onLinkClick(link => {setNodeReport(link.target)})
     .onNodeClick(node => nodeClickVR(node))
     .nodeThreeObject(node => render_node(node))
@@ -707,93 +614,6 @@ function apply_changes() {
    */
   const fg = t.getAttribute("forcegraph");
   const spheresEntity = document.createElement("a-entity");
-
-  AFRAME.registerComponent("spherize", {
-    schema: {},
-    dependencies: ["forcegraph"],
-    init: function () {
-      // spheres are cached here and re-used
-      this.spheres = new Map();
-    },
-    tick: function (time, timeDelta) {
-      // const controllers = document.querySelectorAll("a-entity[laser-controls]");
-      // console.log(controllers[0].getAttribute('laser-controls'));
-      document.querySelectorAll("a-entity[raycaster]").forEach((child) => {
-        // console.log(child.getAttribute('raycaster'));
-        child.setAttribute("raycaster", {
-          objects: "[forcegraph], .collidable",
-          // direction: "0 -1 0",
-        });
-      });
-      document
-        .querySelector("[forcegraph]")
-        .components.forcegraph.forceGraph.children.forEach((child) => {
-          if (child.type == "Mesh" && child.__data.id) {
-            let sphereEl = this.spheres.get(child.__data.id);
-            if (sphereEl) {
-              // reuse existing sphere and label, but change its position
-
-              sphereEl.object3D.position.copy(child.position);
-              sphereEl.setAttribute("color", child.__data.color);
-            } else {
-              sphereEl = document.createElement("a-entity");
-              sphereEl.classList.add("node");
-              sphereEl.id = child.__data.id;
-              this.spheres.set(child.__data.id, sphereEl);
-              let radius = child.__data.radius;
-              child.__data.radius = 5 * radius;
-              // sphereEl.setAttribute("radius", radius - 0.1);
-              sphereEl.setAttribute("position", child.position);
-
-              let color = child.__data.color || "white";
-              let compColor = "white";
-              sphereEl.setAttribute("color", color);
-              this.el.appendChild(sphereEl);
-              let label = document.createElement("a-entity");
-              let originalText = child.__data.short_label;
-              let splitText =
-                originalText.length > 9
-                  ? originalText.substring(0, 8) +
-                    "\n" +
-                    originalText.substring(9)
-                  : originalText;
-              let totalWidth = originalText.length * ((radius * 400) / 160);
-              let totalHeight = 2 * ((radius * 400) / 160);
-              let labelBackground = document.createElement("a-entity");
-              labelBackground.setAttribute("geometry", {
-                primitive: "plane",
-                width: totalWidth,
-                height: totalHeight,
-              });
-              labelBackground.setAttribute("material", {
-                color: "gray",
-                opacity: 0.5,
-              });
-              labelBackground.setAttribute("position", { x: 0, y: 1, z: -1 });
-
-              label.setAttribute("text", {
-                value: originalText,
-                color: compColor,
-                width: radius * 400,
-                align: "center",
-                wrapCount: 160,
-              });
-              // label.setAttribute('scale', '4 4 4');
-              // label.appendChild(labelBackground);
-              sphereEl.setAttribute("look-at", "#camera");
-              label.setAttribute("position", {
-                x: 0,
-                y: 5 * radius,
-                z: 5 * radius,
-              });
-              sphereEl.appendChild(label);
-            }
-          }
-          // const s = (document.querySelector('a-sphere'));
-          // s.setAttribute('radius', "10");
-        });
-    },
-  });
   spheresEntity.setAttribute("spherize", "");
   scene.appendChild(spheresEntity);
   // const fg = t.getAttribute('forcegraph');
@@ -1237,6 +1057,19 @@ function nodeClickVR(node = {}) {
         // node.marker.scale.y = 3;
         //node.marker.scale.z = 3
       }
+    }
+  }
+}
+
+function highlite_node(query) {
+  let nodesArray = this.BUILT_DATA.nodes;
+  document.querySelector("[forcegraph]").components.forcegraph.data.nodes;
+  for (let node = 0; node < nodesArray.length; node++) {
+    if (nodesArray[node]["rdfs:label"] === query) {
+      // console.log(node);
+      nodesArray[node].marker.material.color.setHex(0xff0000);
+
+      return;
     }
   }
 }

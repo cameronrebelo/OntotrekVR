@@ -515,18 +515,6 @@ function init_interface() {
 //   */
 // }
 
-function highlite_node(query) {
-  let nodesArray = this.BUILT_DATA.nodes;
-  document.querySelector("[forcegraph]").components.forcegraph.data.nodes;
-  for (let node = 0; node < nodesArray.length; node++) {
-    if (nodesArray[node]["rdfs:label"] === query) {
-      // console.log(node);
-      nodesArray[node].marker.material.color.setHex(0xff0000);
-
-      return;
-    }
-  }
-}
 
 function load_data(URL, callback) {
   /*
